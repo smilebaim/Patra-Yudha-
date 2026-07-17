@@ -1,0 +1,99 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Fungsi bantuan untuk pengecekan autentikasi
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Pengecekan apakah pengguna adalah Admin
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // --- KOLEKSI PENGGUNA ---
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      // Pemilik bisa menulis data mereka sendiri, TAPI dilarang mengubah role atau status jika dokumen sudah ada
+      allow write: if isOwner(userId) 
+                   && (resource == null || (request.resource.data.role == resource.data.role && request.resource.data.status == resource.data.status));
+      // Admin memiliki kontrol penuh (untuk fitur disable/enable di superdashboard)
+      allow write: if isAdmin();
+    }
+
+    // --- KOLEKSI ALIANSI ---
+    match /alliances/{allianceId} {
+      allow read: if isSignedIn();
+      // Hanya leader yang bisa mengubah identitas aliansi (nama, tag, logo)
+      // Atau admin untuk manajemen global
+      allow update: if isSignedIn() && (request.auth.uid == resource.data.leaderId || isAdmin());
+      // Pembuatan aliansi diizinkan saat onboarding atau oleh admin
+      allow create: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    // --- KOLEKSI MARCHES (PERGERAKAN PASUKAN) ---
+    match /marches/{marchId} {
+      allow read: if isSignedIn();
+      // Hanya penyerang (attackerId) yang bisa mengelola pergerakan pasukan mereka
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.attackerId;
+      allow update, delete: if isSignedIn() && request.auth.uid == resource.data.attackerId;
+      // Berikan akses baca/tulis terbatas untuk sistem game loop (lewat ID pemilik)
+      allow write: if isAdmin();
+    }
+
+    // --- KOLEKSI LAPORAN (INTELIJEN) ---
+    match /reports/{reportId} {
+      // Create diizinkan (untuk hasil tempur), read/delete dikunci ke pemilik laporan
+      allow create: if isSignedIn();
+      allow read, delete: if isSignedIn() && request.auth.uid == resource.data.userId;
+    }
+
+    // --- KOLEKSI ANTRIAN (TRAINING & CONSTRUCTION) ---
+    match /trainingQueue/{jobId} {
+      allow read: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if isSignedIn() && request.auth.uid == resource.data.userId;
+    }
+    
+    match /constructionQueue/{jobId} {
+      allow read: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if isSignedIn() && request.auth.uid == resource.data.userId;
+    }
+
+    // --- KOLEKSI LAIN-LAIN ---
+    match /allianceRequests/{reqId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+      // Delete diizinkan untuk pemohon (cancel) atau leader aliansi tujuan
+      allow delete: if isSignedIn();
+    }
+    
+    match /votes/{voteId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(voteId);
+    }
+
+    match /game-settings/{settingsId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /activityLog/{logId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn();
+    }
+    
+    match /titles/{titleId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}

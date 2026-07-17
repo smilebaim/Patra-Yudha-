@@ -1,0 +1,17 @@
+
+{
+  "alliance_logo_default": {
+    "url": "https://picsum.photos/seed/noble/400/400",
+    "width": 400,
+    "height": 400,
+    "alt": "Panji Aliansi Bangsawan",
+    "data-ai-hint": "noble crest"
+  },
+  "dashboard_bg_default": {
+    "url": "https://picsum.photos/seed/patra/1920/1080",
+    "width": 1920,
+    "height": 1080,
+    "alt": "Latar Belakang Strategis",
+    "data-ai-hint": "strategic map"
+  }
+}

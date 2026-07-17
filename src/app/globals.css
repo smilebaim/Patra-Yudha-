@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .dark {
+    --background: 240 5% 8%;
+    --foreground: 60 90% 95%;
+    --card: 240 5% 10%;
+    --card-foreground: 60 90% 95%;
+    --popover: 240 5% 8%;
+    --popover-foreground: 60 90% 95%;
+    --primary: 48 96% 58%;
+    --primary-foreground: 240 5% 8%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 63%;
+    --accent: 45 86% 51%;
+    --accent-foreground: 45 86% 11%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5% 18%;
+    --input: 240 3.7% 15.9%;
+    --ring: 48 96% 58%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary/30;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight font-semibold;
+  }
+  p {
+    @apply leading-relaxed text-muted-foreground/90;
+  }
+}
+
+@layer components {
+  .btn-3d {
+    border-bottom-width: 4px;
+    box-shadow: 0 2px 0 hsl(var(--border));
+    transition: all 0.1s ease-in-out;
+  }
+  .btn-3d:not(:disabled):active {
+    transform: translateY(2px);
+    border-bottom-width: 2px;
+    box-shadow: none;
+  }
+  
+  .glass-card {
+    @apply bg-card/60 backdrop-blur-md border-primary/10 shadow-xl;
+  }
+}
+
+.gm-style-cc, .gmnoprint {
+  display: none !important;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
